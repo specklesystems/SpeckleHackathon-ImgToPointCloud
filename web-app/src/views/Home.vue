@@ -6,12 +6,11 @@
         accept="image/png, image/jpeg, image/bmp"
         placeholder="Select Images"
         prepend-icon="mdi-camera"
-        multiple
         background-color="light-blue lighten-5"
         solo
         flat
         rounded
-        @change="selectFiles"
+        @change="selectFile"
         label="Images">
         <template #append>
             <v-btn
@@ -25,6 +24,7 @@
     </v-row>
     <v-row>
       <v-alert
+      v-if="streamUrl != null"
       text
       color="light-blue"
       >
@@ -44,17 +44,21 @@
         >
           <v-col class="grow">
             <v-text-field
-              value="URL"
+              v-model="streamUrl"
               dense
               filled
               rounded
               readonly
             ></v-text-field>
+            <div>
+            </div>
           </v-col>
           <v-spacer></v-spacer>
           <v-col class="shrink">
             <v-btn
               color="info"
+              :href="streamUrl"
+              target="_blank"
               rounded
             >
               Open
@@ -67,176 +71,50 @@
 </template>
 
 <script>
-  import flatten from 'flat' 
+  import UploadService from '../services/UploadService'
 
   export default {
     name: 'Home',
     data: () => ( {
-      URL: 'https://speckle.xyz/streams/5dfbeb49c9/commits/22bb89b5b8',
-      totalCount: null,
-      cursors: [],
-      limit: 10,
-      fetchLoading: false,
-      prevLoading: false,
-      nextLoading: false,
-      flattenedObjects: [],
-      headers: [],
-      unflattenedHeaders: [],
-      filteredHeaders:[]
+      currentFile: null,
+      streamUrl: null,
+      progress: 0
     } ),
     watch: {
-      limit() {
-        // If the limit is changed, we need to reset the query
-        this.getObjects()
-      }
     },
     methods: {
-      async next() {
-        this.nextLoading = true
-        await this.getObjects( false, this.cursors[ this.cursors.length - 1 ] )
-        this.nextLoading = false
+      selectFile( file ) {
+        this.currentFile = file,
+        this.progress = 0
       },
-      async prev() {
-        this.prevLoading = true
-        await this.cursors.pop() // remove last cursor
-        await this.getObjects( false, this.cursors[ this.cursors.length - 2 ], false ) // fetch using the second last cursor
-        this.prevLoading = false
-      },
-      async getObjects( cleanCursor = true, cursor = null, appendCursor = true ) {
 
-        // get the stream and commit id from the url
-        const url = new URL( this.URL )
-        let pathArray = url.pathname.split( '/' )
-        const streamId = pathArray[2]
-        const commitId = pathArray[4]
+      upload() {
+        if ( this.currentFile.length === 0 ) {
+          return
+        }
 
-        // create a query for the referenced object of this commit base
-        const commitQuery = this.commitQuery( streamId, commitId )
-
-        // fetch
-        let commitRawRes = await fetch( new URL( '/graphql', url.origin ), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify( {
-            query: commitQuery,
-            variables: { }
-          } )
+        UploadService.upload( this.currentFile, ( event ) => {
+          this.progress = Math.round( ( 100 * event.loaded ) / event.total )
         } )
-
-        let commitRes = await commitRawRes.json()
-        let objectId = commitRes.data.stream.commit.referencedObject
-
-        // create a query for graphql for all children of the commit
-        const objectsQuery = this.objectsQuery( streamId, objectId, cursor )
-
-        // fetch
-        let objectsRawRes = await fetch( new URL( '/graphql', url.origin ), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify( {
-            query: objectsQuery,
-            variables: { 
-              limit: this.limit,
-              mySelect: this.select ? JSON.parse( this.select ) : null, 
-              myQuery: this.query ? JSON.parse( this.query ) : null
-            }
+          .then( ( response ) => {
+            this.streamUrl = 'hello world'
+            return response
           } )
+          .catch( ( ) => {
+            this.progress = 0
+            this.currentFile = undefined
+          } )
+      },
+
+      mounted( ) {
+        UploadService.getStream( ).then( response => {
+          this.streamUrl = response.data
         } )
-
-        let objectsRes = await objectsRawRes.json()
-        let children = objectsRes.data.stream.object.children
-
-        // handle cursor pagination
-        this.totalCount = children.totalCount
-        if( cleanCursor ) this.cursors = [ null ]
-        if( appendCursor ) this.cursors.push( children.cursor ) 
-
-        // flatten these objects to generate table rows. 
-        // This will still yield key value pairs in flattened json
-        this.flattenedObjects = children.objects.map( o => flatten( o ) )
-
-        // get the unique keys of flattened objects for the headers
-        // then create headers with text and value
-        let uniqueHeaders = new Set()
-        this.flattenedObjects.forEach( o => Object.keys( o ).forEach( o => uniqueHeaders.add( o ) ) )
-        uniqueHeaders.forEach( o => this.headers.push( { text: o, value: o, sortable:false } ) )
-
-        // unflatten the headers to generate tree
-        let headerTree = this.makeTreeFromHeaders( uniqueHeaders )
-        this.unflattenedHeaders = headerTree
-      },
-
-      makeTreeFromHeaders( uniqueHeaders ) {
-        let tree = [ { id: 0, name: 'all fields', fullname: '', children: [] } ]
-        let i = 1
-        for ( let header of uniqueHeaders ) {
-          let parts = header.split( '.' )
-          let leaf = tree[0].children
-          let partIndex = 1
-          for ( let part of parts ) {
-            let index = leaf.findIndex( ( x ) => x.name === part )
-            if ( index === -1 ) {
-              let fullname = parts.slice( 0, partIndex ).join( '.' )
-              leaf.push( { id: i, name: part, fullname: fullname, children: [] } )
-              index = leaf.length - 1
-              i++
-            }
-            partIndex++
-            leaf = leaf[index].children
-          }
-        }
-        return tree
-      },
-
-      objectsQuery( streamId, objectId, cursor = null ) {
-      return `
-        query ($limit: Int, $mySelect: [String!], $myQuery: [JSONObject!]) {
-          stream( id: "${streamId}" ) {
-            object( id: "${objectId}" ) {
-              children ( 
-                limit: $limit
-                depth: 100
-                select: $mySelect
-                query: $myQuery
-                ${ cursor ? ', cursor:"' + cursor + '"' : '' }
-                ) {
-                totalCount
-                cursor
-                objects {
-                  data
-                }
-              }
-            }
-          }
-        }
-      `
-      },
-
-      commitQuery( streamId, commitId ) {
-      return `
-        query {
-          stream( id: "${streamId}" ) {
-            commit( id: "${commitId}" ) {
-              referencedObject
-            }
-          }
-        }
-      `
       }
-
 
     },
     computed: {
-      showHeaders () {
-        let headersToRemove = []
-        this.filteredHeaders.forEach( o => headersToRemove.push( o.fullname ) )
-        let shownHeaders = this.headers.filter( s => !headersToRemove.includes( s.text ) )
-        return shownHeaders
-      }
+      
     }
   }
 </script>
