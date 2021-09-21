@@ -23,8 +23,16 @@
       </v-file-input>
     </v-row>
     <v-row>
+      <v-col>
+        <v-progress-linear
+          v-if=progressLoading
+          indeterminate
+        ></v-progress-linear>
+      </v-col>
+    </v-row>
+    <v-row>
       <v-alert
-      v-if="streamUrl != null"
+      v-if="finishedLoading"
       text
       color="light-blue"
       >
@@ -66,6 +74,14 @@
           </v-col>
         </v-row>
       </v-alert>
+      <v-alert
+      v-if="alert"
+      outlined
+      color="warning"
+      prominent
+      dismissible>
+        Could not generate point cloud :(
+      </v-alert>
     </v-row>
   </v-container>
 </template>
@@ -78,37 +94,49 @@
     data: () => ( {
       currentFile: null,
       streamUrl: null,
-      progress: 0
+      progressLoading: false,
+      finishedLoading:false,
+      alert: false
     } ),
     watch: {
     },
     methods: {
       selectFile( file ) {
         this.currentFile = file,
-        this.progress = 0
+        this.progressLoading = false,
+        this.finishedLoading = false
+        this.alert = false
       },
 
       upload() {
         if ( this.currentFile.length === 0 ) {
           return
         }
+        this.progressLoading = true
+        this.alert = false
 
         UploadService.upload( this.currentFile, ( event ) => {
-          this.progress = Math.round( ( 100 * event.loaded ) / event.total )
         } )
           .then( ( response ) => {
-            this.streamUrl = 'hello world'
+            this.streamUrl = response.data
+            this.progressLoading = false
+            this.finishedLoading = true
             return response
           } )
           .catch( ( ) => {
-            this.progress = 0
+            this.alert = true
+            this.progressLoading = false
             this.currentFile = undefined
+            this.finishedLoading = false
           } )
       },
 
       mounted( ) {
         UploadService.getStream( ).then( response => {
           this.streamUrl = response.data
+          this.progressLoading = false
+          this.finishedLoading = false
+          this.alert = false
         } )
       }
 
