@@ -1,64 +1,67 @@
 <template>
   <v-container>
     <v-row class="mt-12">
-      <v-text-field
-        label="commit url"
-        flat
-        rounded
+      <v-file-input
+        :rules="rules"
+        accept="image/png, image/jpeg, image/bmp"
+        placeholder="Select Images"
+        prepend-icon="mdi-camera"
+        multiple
         background-color="light-blue lighten-5"
         solo
-        v-model="URL">
+        flat
+        rounded
+        @change="selectFiles"
+        label="Images">
         <template #append>
             <v-btn
                 rounded
-                color="blue"
-                @click="getObjects">
-            get
+                color="info"
+                @click="upload">
+            Upload
             </v-btn>
         </template>
-      </v-text-field>
+      </v-file-input>
     </v-row>
     <v-row>
-      <v-col>
-        <v-card
-          max-width="300px"
+      <v-alert
+      text
+      color="light-blue"
+      >
+        <h3 class="text-h5">
+          Generated Stream
+        </h3>
+        <div>Your point cloud has been generated from your images. View your results here!</div>
+
+        <v-divider
+          class="my-4 info"
+          style="opacity: 0.22"
+        ></v-divider>
+
+        <v-row
+          align="center"
+          no-gutters
         >
-          <v-sheet class="pa-4 blue">
+          <v-col class="grow">
             <v-text-field
-              v-model="search"
-              label="Search Properties"
-              dark
-              flat
-              solo-inverted
-              hide-details
+              value="URL"
+              dense
+              filled
+              rounded
+              readonly
             ></v-text-field>
-          </v-sheet>
-          <v-card-text>
-            <v-treeview
-              selectable
-              return-object
-              v-model="filteredHeaders"
-              :items="unflattenedHeaders"
-            ></v-treeview>
-          </v-card-text>
-        </v-card>
-        
-      </v-col>
-      <v-col>
-        <v-text-field label="Limit" v-model.number="limit" type="number"></v-text-field>
-        <v-data-table
-          v-if="URL && URL.length !== 0"
-          dense
-          :headers="showHeaders"
-          :items="flattenedObjects"
-          :items-per-page="limit"
-          :hide-default-footer="true"
-          disable-sort
-          class="elevation-1 mt-12">
-        </v-data-table>
-        <v-btn @click="prev" :loading='prevLoading' :disabled="cursors.length <= 2" class="mr-2">prev</v-btn>
-        <v-btn @click="next" :loading='nextLoading' :disabled="cursors.length === 0 || (cursors.length - 1) * limit >= totalCount" class="mr-2">next</v-btn>
-      </v-col>
+          </v-col>
+          <v-spacer></v-spacer>
+          <v-col class="shrink">
+            <v-btn
+              color="info"
+              rounded
+            >
+              Open
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-alert>
     </v-row>
   </v-container>
 </template>

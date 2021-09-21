@@ -14,7 +14,7 @@
           transition="scale-transition"
           width="40"
         />
-        <v-toolbar-title>Speckle App</v-toolbar-title>
+        <v-toolbar-title>Pointcloud Generator</v-toolbar-title>
       </div>
     </v-app-bar>
 
@@ -25,16 +25,16 @@
 </template>
 
 <script>
-import Home from './views/Home';
+import Home from './views/Home'
 
 export default {
   name: 'App',
 
   components: {
-    Home,
+    Home
   },
 
-  data: () => ({
-  }),
-};
+  data: () => ( {
+  } )
+}
 </script>
