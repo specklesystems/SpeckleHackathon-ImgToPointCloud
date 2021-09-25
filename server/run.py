@@ -96,7 +96,9 @@ def createSingleImagePC(img, depths):
     pc = new_pointcloud()
 
     fullwidth, fullheight = img.size
+    previous_depth = []
     for y in range(fullheight):
+        previous_depth.append([])
         for x in range(fullwidth):
             depthy = y * 240 / fullheight
             depthx = x * 320 / fullwidth
@@ -138,6 +140,30 @@ def createSingleImagePC(img, depths):
 
             r, g, b = img.getpixel((x, y))
             pc.add_point(x, d, -y, r, g, b)
+
+            previous_depth[y].append(d)
+
+            depth_x = d 
+            depth_y = d
+            if x >= 1:
+                depth_x = previous_depth[y][x-1]
+            if y >= 1:
+                depth_y = previous_depth[y-1]
+            if abs(depth_x - d) > abs(depth_y - d):
+                largest_depth = depth_x
+            else
+                largest_depth = depth_y
+
+            num_points = int( abs( d - largest_depth) ) - 1
+            if num_points < 1:
+                continue
+            for i in range(num_points):
+                if ( d > largest_depth):
+                    pc.add_point(x, d - i + 1, -y, r, g, b)
+                else
+                    pc.add_point(x, d + i - 1, -y, r, g, b)
+
+ 
 
     return store_pointcloud(pc)
 
