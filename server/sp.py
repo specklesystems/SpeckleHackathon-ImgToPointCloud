@@ -62,8 +62,8 @@ def store_pointcloud(pc):
         object_id=hash,
         message="this is a point cloud array"
     )
-    # return 'http://anthe.local/streams/' + new_stream_id
-    return 'https://latest.speckle.dev/streams/' + new_stream_id
+
+    return os.environ['SPECKLE_SERVER'] + '/streams/' + new_stream_id
 
 
 def main():

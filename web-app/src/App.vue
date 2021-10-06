@@ -14,7 +14,7 @@
           transition="scale-transition"
           width="40"
         />
-        <v-toolbar-title>Pointcloud Generator</v-toolbar-title>
+        <v-toolbar-title>Pointcloud Generator - Alpha version - MachineLearning ProofOfConcept</v-toolbar-title>
       </div>
     </v-app-bar>
 

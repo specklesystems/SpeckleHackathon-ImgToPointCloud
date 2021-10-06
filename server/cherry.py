@@ -27,15 +27,15 @@ class App:
             return 'OK'
         upload_file = '/tmp/imgfile'
         size = 0
-        with open(upload_file, 'wb') as out:
-            while True:
-                data = imgfile.file.read(8192)
-                if not data:
-                    break
-                out.write(data)
-                size += len(data)
-
         with LOCK:
+            with open(upload_file, 'wb') as out:
+                while True:
+                    data = imgfile.file.read(8192)
+                    if not data:
+                        break
+                    out.write(data)
+                    size += len(data)
+
             return createPC(['/tmp/imgfile'])
 
 
@@ -60,6 +60,19 @@ config = {
 }
 
 
+def init_thread():
+    # Call `/init` to load the ml model in the cherrypy thread
+    # (Models can only be used in the same thread that loaded the model)
+    import time, requests
+    time.sleep(2)
+    try:
+        requests.get('http://127.0.0.1:8080/init')
+    except:
+        pass
+
 
 if __name__ == '__main__':
-        cherrypy.quickstart(App(), '/', config)
+    t = threading.Thread(target=init_thread)
+    t.setDaemon(True)
+    t.start()
+    cherrypy.quickstart(App(), '/', config)
