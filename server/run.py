@@ -46,8 +46,8 @@ def createPC(img_fnames):
 
     for fname in img_fnames:
         img = Image.open(fname)
-        if img.size[0] > 1024 or img.size[1] > 1024:
-            img.thumbnail((1024, 1024), Image.ANTIALIAS)
+        if img.size[0] > 800 or img.size[1] > 800:
+            img.thumbnail((800, 800), Image.ANTIALIAS)
         images0.append(img)
         resized = img.resize((640, 480), Image.LANCZOS)
         images1.append(resized)
@@ -148,19 +148,19 @@ def createSingleImagePC(img, depths):
             if x >= 1:
                 depth_x = previous_depth[y][x-1]
             if y >= 1:
-                depth_y = previous_depth[y-1]
+                depth_y = previous_depth[y-1][x]
             if abs(depth_x - d) > abs(depth_y - d):
                 largest_depth = depth_x
-            else
+            else:
                 largest_depth = depth_y
 
-            num_points = int( abs( d - largest_depth) ) - 1
+            num_points = int( abs( d - largest_depth) )
             if num_points < 1:
                 continue
             for i in range(num_points):
                 if ( d > largest_depth):
                     pc.add_point(x, d - i + 1, -y, r, g, b)
-                else
+                else:
                     pc.add_point(x, d + i - 1, -y, r, g, b)
 
  
