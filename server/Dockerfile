@@ -1,6 +1,6 @@
-FROM tensorflow/tensorflow:1.13.2-py3-jupyter
+FROM tensorflow/tensorflow:2.2.3-py3-jupyter
 
-RUN pip3 install keras==2.2.4
+RUN pip3 install keras==2.10.0
 
 RUN pip3 install scikit-learn scikit-image
 
