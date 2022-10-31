@@ -1,6 +1,6 @@
 FROM tensorflow/tensorflow:2.10.0-jupyter
 
-RUN pip3 install keras==2.10.0
+RUN pip3 install keras==2.2.4
 
 RUN pip3 install scikit-learn==1.1.3 scikit-image==0.19.3
 

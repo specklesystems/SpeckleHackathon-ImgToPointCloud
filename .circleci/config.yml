@@ -1,0 +1,31 @@
+version: 2.1
+
+workflows:
+  version: 2
+  test-build-publish:
+    jobs:
+      - docker-build:
+          context:
+            - docker-hub
+          filters:
+            tags:
+              only: /.*/
+
+jobs:
+  docker-build:
+    docker:
+      - image: cimg/python:3.9.15
+    resource_class: medium
+    working_directory: /tmp/ci
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/ci/workspace
+      - setup_remote_docker:
+          # a weird issue with yarn installing packages throwing EPERM errors
+          # this fixes it
+          version: 20.10.12
+          docker_layer_caching: true
+      - run:
+          name: Build and Publish
+          command: ./.circleci/build.sh
