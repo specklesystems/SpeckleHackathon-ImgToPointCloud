@@ -5,6 +5,8 @@ workflows:
   test-build-publish:
     jobs:
       - docker-build:
+          context:
+            - docker-hub
           filters:
             tags:
               only: /.*/
