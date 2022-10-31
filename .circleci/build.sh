@@ -14,8 +14,7 @@ else
     LAST_RELEASE="$(git describe --always --tags $(git rev-list --tags) | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || echo "0.0.0")"
     NEXT_RELEASE="$(echo "${LAST_RELEASE}" | python -c "parts = input().split('.'); parts[-1] = str(int(parts[-1])+1); print('.'.join(parts))")"
     BRANCH_NAME_TRUNCATED="$(echo "${CIRCLE_BRANCH}" | cut -c -50 | sed 's/[^a-zA-Z0-9_.-]/_/g')" # docker has a 128 character tag limit, so ensuring the branch name will be short enough
-    COMMIT_SHA1_TRUNCATED="$(echo "${CIRCLE_SHA1}" | cut -c -7)"
-    IMAGE_VERSION_TAG="$NEXT_RELEASE-branch.${BRANCH_NAME_TRUNCATED}.${COMMIT_SHA1_TRUNCATED}.${CIRCLE_BUILD_NUM}"
+    IMAGE_VERSION_TAG="$NEXT_RELEASE-branch.${BRANCH_NAME_TRUNCATED}"
 fi
 
 echo "🧱 Building image: ${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}"
