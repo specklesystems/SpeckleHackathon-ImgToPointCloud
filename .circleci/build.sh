@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eo pipefail
+set -eox pipefail
 
 # enables building the test-deployment container with the same script
 # defaults to packages for minimal intervention in the ci config
@@ -27,7 +27,9 @@ docker build --tag "${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}" --file "${FOLDER}/
 echo "Starting tagging & publishing of image: ${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}"
 
 echo "🐳 Logging into Docker"
+set +x
 echo "${DOCKER_REG_PASS}" | docker login -u "${DOCKER_REG_USER}" --password-stdin "${DOCKER_REG_URL}"
+set -x
 echo "⏫ Pushing loaded image: '${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}'"
 docker push "${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}"
 
