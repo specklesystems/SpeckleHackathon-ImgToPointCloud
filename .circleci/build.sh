@@ -21,7 +21,7 @@ echo "🧱 Building image: ${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}"
 
 export DOCKER_BUILDKIT=1
 
-docker build --tag "${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}" --file "${FOLDER}/Dockerfile" .
+docker build --tag "${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}" --file "${FOLDER}/Dockerfile" server
 
 echo "Starting tagging & publishing of image: ${DOCKER_IMAGE_TAG}:${IMAGE_VERSION_TAG}"
 
