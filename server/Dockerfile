@@ -6,7 +6,7 @@ RUN gdown https://drive.google.com/uc?id=19dfvGvDfCRYaqxVKypp1fRHwK7XtSjVu
 
 FROM tensorflow/tensorflow:2.12.0rc0-jupyter
 
-RUN pip3 install keras==2.11.0
+RUN pip3 install keras==2.12.0rc0
 
 RUN pip3 install scikit-learn==1.2.0 scikit-image==0.19.3
 
