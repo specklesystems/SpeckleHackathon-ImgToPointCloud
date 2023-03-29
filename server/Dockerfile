@@ -1,4 +1,4 @@
-FROM python:3.9.16-buster AS model-download
+FROM python:3.9.16-bullseye AS model-download
 
 RUN pip3 install gdown
 
